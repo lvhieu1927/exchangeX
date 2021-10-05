@@ -5,8 +5,8 @@ import 'package:exchangex/models/user_model.dart';
 abstract class ExchangeEvent extends Equatable{
   late final List<Currency> listCurrency;
   late final Currency chosenCurrency;
-  late final String fromAmount;
-  late final String toAmount;
+  late final double fromAmount;
+  late final double toAmount;
   late final bool isSell;
   late final User user;
 
@@ -21,12 +21,12 @@ abstract class ExchangeEvent extends Equatable{
 
 
 class FetchExchangeEvent extends ExchangeEvent {
-  FetchExchangeEvent(User user, List<Currency> listCurrency, Currency chosenCurrency, String fromAmount, String toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
+  FetchExchangeEvent(User user, List<Currency> listCurrency, Currency chosenCurrency, double fromAmount, double toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
 
 }
 
 class ExchangeFromAmountChange extends ExchangeEvent{
-  ExchangeFromAmountChange(User user, List<Currency> listCurrency, Currency chosenCurrency, String fromAmount, String toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
+  ExchangeFromAmountChange(User user, List<Currency> listCurrency, Currency chosenCurrency, double fromAmount, double toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
 
 
   @override
@@ -37,7 +37,7 @@ class ExchangeFromAmountChange extends ExchangeEvent{
 class ExchangeEventAmountChanged extends ExchangeEvent{
   bool isFromAmount;
 
-  ExchangeEventAmountChanged(User user, List<Currency> listCurrency, Currency chosenCurrency, String fromAmount, String toAmount, bool isSell, bool this.isFromAmount) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
+  ExchangeEventAmountChanged(User user, List<Currency> listCurrency, Currency chosenCurrency, double fromAmount, double toAmount, bool isSell, bool this.isFromAmount) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
 
 
   @override
@@ -46,17 +46,20 @@ class ExchangeEventAmountChanged extends ExchangeEvent{
 }
 
 class ExchangeEventSwapCurrency extends ExchangeEvent{
-  ExchangeEventSwapCurrency(User user, List<Currency> listCurrency, Currency chosenCurrency, String fromAmount, String toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
+  ExchangeEventSwapCurrency(User user, List<Currency> listCurrency, Currency chosenCurrency, double fromAmount, double toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
     List<Object> get props => [chosenCurrency,isSell];
 }
 
 class ExchangeEventCurrencyChange extends ExchangeEvent{
-  ExchangeEventCurrencyChange(User user, List<Currency> listCurrency, Currency chosenCurrency, String fromAmount, String toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
+  ExchangeEventCurrencyChange(User user, List<Currency> listCurrency, Currency chosenCurrency, double fromAmount, double toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
     List<Object> get props => [listCurrency,chosenCurrency,isSell];
 }
 
-class ExchangeCurrencyToChange extends ExchangeEvent{
-  ExchangeCurrencyToChange(User user, List<Currency> listCurrency, Currency chosenCurrency, String fromAmount, String toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
+
+class ExchangeEventSubmitTransaction extends ExchangeEvent{
+
+
+  ExchangeEventSubmitTransaction(User user, List<Currency> listCurrency, Currency chosenCurrency, double fromAmount, double toAmount, bool isSell) : super(user, listCurrency, chosenCurrency, fromAmount, toAmount, isSell);
 
   List<Object> get props => [listCurrency,chosenCurrency];
 }

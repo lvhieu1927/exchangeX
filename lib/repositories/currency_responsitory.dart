@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 const String apiKey =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MzI0MjgzMjIsImlhdCI6MTYzMTEzMjMyMiwic2NvcGUiOiJleGNoYW5nZV9yYXRlIiwicGVybWlzc2lvbiI6MH0.aKmNAaSEJTHwloDQvLwA5ZcAy0U48p83DBGNgw8BNZI";
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MzM4ODg0NzYsImlhdCI6MTYzMjU5MjQ3Niwic2NvcGUiOiJleGNoYW5nZV9yYXRlIiwicGVybWlzc2lvbiI6MH0.jfUa1mB3AWi7L1bALBCYXc-lB_09v-n4tTMn0lhmJks";
 const apiExchangeRate = "/api/v2/exchange_rate/vcb";
 
 final Uri currencyURL = Uri.https(

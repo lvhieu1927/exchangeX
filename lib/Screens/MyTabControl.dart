@@ -1,8 +1,12 @@
 import 'package:exchangex/Screens/ExchangeScreen.dart';
 import 'package:exchangex/Screens/HistoryScreen.dart';
-import 'package:exchangex/Screens/LoginScreen.dart';
+import 'package:exchangex/Screens/InfomationScreen.dart';
+import 'package:exchangex/blocs/HistoryBloc.dart';
+import 'package:exchangex/blocs/InformationBloc.dart';
+import 'package:exchangex/blocs/PayinBloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MyTabControl extends StatelessWidget {
   @override
@@ -11,12 +15,22 @@ class MyTabControl extends StatelessWidget {
       length: 3,
       child: Scaffold(
         bottomNavigationBar: menu(),
-        body: TabBarView(
-          children: [
-            Container(child: ExchangeScreen()),
-            Container(child: HistoryScreen()),
-            Container(child: Icon(Icons.directions_bike)),
+        body: MultiBlocProvider(
+          providers: [
+            BlocProvider<HistoryBloc>(
+                create: (BuildContext context) => HistoryBloc()),
+            BlocProvider<InformationBloc>(
+                create: (BuildContext context) => InformationBloc()),
+            BlocProvider<PayInBloc>(
+                create: (BuildContext context) => PayInBloc()),
           ],
+          child: TabBarView(
+            children: [
+              Container(child: ExchangeScreen()),
+              Container(child: HistoryScreen()),
+              Container(child: InformationScreen()),
+            ],
+          ),
         ),
       ),
     );

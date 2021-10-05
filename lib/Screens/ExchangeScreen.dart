@@ -3,14 +3,18 @@ import 'package:exchangex/Screens/Widgets/CustomDropdown.dart';
 import 'package:exchangex/blocs/ExchangeBloc.dart';
 import 'package:exchangex/blocs/events/ExchangeEvent.dart';
 import 'package:exchangex/blocs/states/exchangeState.dart';
+import 'package:exchangex/models/balance_model.dart';
 import 'package:exchangex/models/currency_model.dart';
 import 'package:exchangex/models/user_model.dart';
-import 'package:exchangex/repositories/user_respository.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:intl/intl.dart';
 
 class ExchangeScreen extends StatefulWidget {
   const ExchangeScreen({Key? key}) : super(key: key);
@@ -23,8 +27,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   Color mainColor = Color(0xFFB4AEAE);
   Color secondColor = Color(0xFF37385A);
   Color wordGreyColor = Color(0xFF989595);
-  final TextEditingController _fromAmountController = TextEditingController();
-  final TextEditingController _toAmountController = TextEditingController();
+  late final MoneyMaskedTextController _fromAmountController;
+  late final MoneyMaskedTextController _toAmountController;
   var currency = "USD";
 
   late ExchangeBloc _exchangeBloc;
@@ -32,28 +36,44 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   @override
   void initState() {
     super.initState();
+    _fromAmountController = MoneyMaskedTextController();
+    _toAmountController = MoneyMaskedTextController();
     List<Currency> currencyList = <Currency>[];
     Currency currency =
         new Currency(buy_cash: 0, buy_transfer: 0, currency: "0", sell: 0);
     currencyList.add(currency);
-    User user = virtualUser();
+
+    List<Balance> balanceList = <Balance>[];
+    User? user = User(
+        identifyCard: "0",
+        email: "none",
+        fullName: "none",
+        phoneNumber: "000",
+        balanceList: balanceList);
+
     _exchangeBloc = BlocProvider.of(context);
     _exchangeBloc
-        .add(FetchExchangeEvent(user, currencyList, currency, "", "", true));
+        .add(FetchExchangeEvent(user, currencyList, currency, 0, 0, true));
+    precachePicture(
+      ExactAssetPicture(
+          SvgPicture.svgStringDecoder, 'assets/images/ic_exchange.svg'),
+      null,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    MediaQueryData queryData = MediaQuery.of(context);
-    var deviceWidth = queryData.size.width / 360;
-    var deviceHeight = queryData.size.height / 640;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(child:
           BlocBuilder<ExchangeBloc, ExchangeState>(builder: (context, state) {
-        if (state is ExchangeStateInitial || state is ExchangeStateFetching) {
-          return Center(child: CircularProgressIndicator());
+        if (state is ExchangeStateSubmittingTransaction ||
+            state is ExchangeStateFetching ||
+            state is ExchangeStateInitial) {
+          return Container(
+              height: 640.h,
+              width: 360.w,
+              child: Center(child: CircularProgressIndicator()));
         }
         if (state is ExchangeStateFailedFetched) {
           return Center(
@@ -62,49 +82,61 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
         }
         if (state is ExchangeStateSuccessFetched) {
           final currentState = state as ExchangeStateSuccessFetched;
-          return Padding(
-            padding: const EdgeInsets.all(0.0),
-            child: Stack(
-              children: [
-                Image.asset(
-                  "assets/images/img_background.png",
-                  height: deviceHeight * 640,
-                  width: deviceWidth * 360,
-                  fit: BoxFit.fill,
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    headOfScreen(deviceHeight, deviceWidth, currentState),
-                    bottomOfScreen(
-                        deviceHeight, deviceWidth, currentState, context),
-                    Padding(
-                      padding: EdgeInsets.only(
-                          top: 12 * deviceHeight,
-                          left: 12 * deviceWidth,
-                          right: 12 * deviceWidth),
-                      child: ElevatedButton(
-                        style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all<Size>(
-                                Size(double.infinity, 45 * deviceHeight)),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.0),
-                            ))),
-                        onPressed: () {},
-                        child: Text(
-                          currentState.isSell
-                              ? 'Sell ${currentState.chosenCurrency.currency}'
-                              : 'Buy ${currentState.chosenCurrency.currency}',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
+          return SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Padding(
+              padding: const EdgeInsets.all(0.0),
+              child: Stack(
+                children: [
+                  Container(
+                    width: 360.w,
+                    height: 640.h,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment(0.8, 0.0),
+                        // 10% of the width, so there are ten blinds.
+                        colors: <Color>[Color(0xff0B1A65), Color(0xffB0B1B6)],
+                        // red to yellow
+                        tileMode: TileMode
+                            .repeated, // repeats the gradient over the canvas
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      headOfScreen(currentState),
+                      bottomOfScreen(currentState, context),
+                      Padding(
+                        padding:
+                            EdgeInsets.only(top: 12.h, left: 12.w, right: 12.w),
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                              minimumSize: MaterialStateProperty.all<Size>(
+                                  Size(double.infinity, 45.h)),
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18.0),
+                              ))),
+                          onPressed: () {
+                            _pressSubmitButton(state);
+                          },
+                          child: Text(
+                            currentState.isSell
+                                ? 'Sell ${currentState.chosenCurrency.currency}'
+                                : 'Buy ${currentState.chosenCurrency.currency}',
+                            style: TextStyle(
+                                fontSize: 16.sp, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -117,19 +149,15 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
 
   //HEAD OF Screen **************************************************************************************************
 
-  Padding headOfScreen(double deviceHeight, double deviceWidth,
-      ExchangeStateSuccessFetched currentState) {
+  Padding headOfScreen(ExchangeStateSuccessFetched currentState) {
     var now = new DateTime.now();
     var formatter = new intl.DateFormat('yyyy-MM-dd');
     String formattedDate = formatter.format(now);
 
     return Padding(
-      padding: EdgeInsets.only(
-          top: 20 * deviceHeight,
-          left: 12 * deviceWidth,
-          right: 12 * deviceWidth),
+      padding: EdgeInsets.only(top: 20.h, left: 12.w, right: 12.w),
       child: Container(
-          padding: EdgeInsets.only(bottom: 14.0 * deviceHeight),
+          padding: EdgeInsets.only(bottom: 14.0.h),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20.0),
@@ -138,10 +166,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-
               Container(
-                padding: EdgeInsets.only(
-                    left: 32 * deviceWidth, bottom: deviceWidth * 10,top: deviceWidth*15),
+                padding: EdgeInsets.only(left: 32.w, bottom: 10.h, top: 15.h),
                 child: Row(children: [
                   Text(
                     "${formattedDate}",
@@ -152,7 +178,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                     ),
                   ),
                   SizedBox(
-                    width: 3 * deviceWidth,
+                    width: 3.w,
                   ),
                   Icon(
                     Icons.calendar_today,
@@ -160,7 +186,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                     size: 16.0,
                   ),
                   SizedBox(
-                    width: 26 * deviceWidth,
+                    width: 26.w,
                   ),
                   Center(
                     child: Text(
@@ -177,15 +203,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   BoxBuySell(
-                      deviceWidth: deviceWidth,
-                      deviceHeight: deviceHeight,
                       colorOfBox: Color(0xFF153C94),
                       textOfBox: "Buy",
                       leftOrRightMargin: 1,
                       price: currentState.chosenCurrency.buy_cash),
                   BoxBuySell(
-                    deviceWidth: deviceWidth,
-                    deviceHeight: deviceHeight,
                     colorOfBox: Color(0xFFFB010C),
                     textOfBox: "Sell",
                     leftOrRightMargin: 0,
@@ -200,15 +222,15 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
 
   //Bottom OF Screen **************************************************************************************************
 
-  Container bottomOfScreen(double deviceHeight, double deviceWidth,
+  Container bottomOfScreen(
       ExchangeStateSuccessFetched currentState, BuildContext context) {
-    _fromAmountController.text = currentState.fromAmount;
-    _toAmountController.text = currentState.toAmount;
+    _fromAmountController.updateValue(currentState.fromAmount);
+    _toAmountController.updateValue(currentState.toAmount);
 
     _fromAmountController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _fromAmountController.text.length));
+        TextPosition(offset: _fromAmountController.text.length-2));
     _toAmountController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _toAmountController.text.length));
+        TextPosition(offset: _toAmountController.text.length-2));
 
     num balanceChosenCurrency = 0;
     for (int i = 0; i < currentState.user.balanceList.length; i++) {
@@ -218,15 +240,9 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
     }
 
     return Container(
-      margin: EdgeInsets.only(
-          top: 14 * deviceHeight,
-          left: 12 * deviceWidth,
-          right: 12 * deviceWidth),
-      padding: EdgeInsets.only(
-          left: 35 * deviceWidth,
-          right: 35 * deviceWidth,
-          top: 30 * deviceWidth,
-          bottom: 30 * deviceWidth),
+      margin: EdgeInsets.only(top: 14.h, left: 12.w, right: 12.w),
+      padding:
+          EdgeInsets.only(left: 35.w, right: 35.w, top: 30.w, bottom: 30.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),
@@ -258,8 +274,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
           Row(mainAxisAlignment: MainAxisAlignment.start, children: [
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text("Max: ${currentState.isSell ? currentState.chosenCurrency.currency : "VND"} "
-                  "${currentState.isSell ? balanceChosenCurrency : currentState.user.balanceList[0].balanceValue}",
+              child: Text(
+                  "Max: ${currentState.isSell ? currentState.chosenCurrency.currency : "VND"} "
+                  "${currentState.isSell
+                      ? NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(balanceChosenCurrency)
+                      : NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(currentState.user.balanceList[0].balanceValue)}",
                   style: TextStyle(color: wordGreyColor)),
             )
           ]),
@@ -268,16 +287,18 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
             children: [
               Divider(
                 color: Color(0xFFB4AEAE),
-                indent: 1 * deviceWidth,
-                endIndent: 1 * deviceWidth,
+                indent: 1.w,
+                endIndent: 1.w,
                 height: 48,
               ),
-              IconButton(
-                onPressed: () {
-                  _pressedSwapButton(currentState);
-                },
-                icon: SvgPicture.asset(
-                  'assets/images/ic_exchange.svg',
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Color(0xFFB4AEAE),
+                child: IconButton(
+                  icon: SvgPicture.asset('assets/images/ic_exchange.svg'),
+                  onPressed: () {
+                    _pressedSwapButton(currentState);
+                  },
                 ),
               ),
             ],
@@ -309,16 +330,17 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 "Max: ${!currentState.isSell ? currentState.chosenCurrency.currency : "VND"} "
-                    "${currentState.isSell ? (balanceChosenCurrency*currentState.chosenCurrency.sell).toStringAsFixed(0)
-                    : (currentState.user.balanceList[0].balanceValue/currentState.chosenCurrency.buy_cash).toStringAsFixed(3)}",
+                "${currentState.isSell
+                    ? NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format((balanceChosenCurrency * currentState.chosenCurrency.sell))
+                    : NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format((currentState.user.balanceList[0].balanceValue / currentState.chosenCurrency.buy_cash))}",
                 style: TextStyle(color: wordGreyColor),
               ),
             )
           ]),
           Divider(
             color: Color(0xFFB4AEAE),
-            indent: 1 * deviceWidth,
-            endIndent: 1 * deviceWidth,
+            indent: 1.w,
+            endIndent: 1.w,
             height: 48,
           ),
           Row(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -328,11 +350,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
             )
           ]),
           Padding(
-            padding: EdgeInsets.only(left: deviceWidth * 75),
+            padding: EdgeInsets.only(left: 75.w),
             child: Column(
               children: [
                 Container(
-                  padding: EdgeInsets.only(top: 10 * deviceWidth),
+                  padding: EdgeInsets.only(top: 10.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -341,9 +363,9 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                         style: TextStyle(color: secondColor),
                       ),
                       Container(
-                          padding: EdgeInsets.only(left: 10 * deviceWidth),
+                          padding: EdgeInsets.only(left: 10.w),
                           child: Text(
-                            "${intl.NumberFormat.decimalPattern().format(balanceChosenCurrency)}",
+                            "${NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(balanceChosenCurrency)}",
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w400,
@@ -353,7 +375,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 10 * deviceWidth),
+                  padding: EdgeInsets.only(top: 10.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -362,9 +384,9 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                         style: TextStyle(color: secondColor),
                       ),
                       Container(
-                          padding: EdgeInsets.only(left: 10 * deviceWidth),
+                          padding: EdgeInsets.only(left: 10.w),
                           child: Text(
-                            "${intl.NumberFormat.decimalPattern().format(currentState.user.balanceList[0].balanceValue)}",
+                            "${NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(currentState.user.balanceList[0].balanceValue)}",
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w400,
@@ -386,8 +408,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
         currentState.user,
         currentState.currenciesList,
         currentState.chosenCurrency,
-        _fromAmountController.text,
-        _toAmountController.text,
+        _fromAmountController.numberValue,
+        _toAmountController.numberValue,
         currentState.isSell));
   }
 
@@ -398,9 +420,38 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
         currentState.user,
         currentState.currenciesList,
         currentState.chosenCurrency,
-        _fromAmountController.text,
-        _toAmountController.text,
+        _fromAmountController.numberValue,
+        _toAmountController.numberValue,
         currentState.isSell,
         isFromAmount));
+  }
+
+  void _pressSubmitButton(ExchangeStateSuccessFetched state) {
+    bool isLegal = false;
+    if (_fromAmountController.numberValue != 0 ||
+        _toAmountController.numberValue != 0) {
+      double fromAmount = _fromAmountController.numberValue;
+      double toAmount = _toAmountController.numberValue;
+      if (fromAmount > 1 || toAmount > 1) {
+        isLegal = true;
+      }
+    }
+    if (isLegal) {
+      BlocProvider.of<ExchangeBloc>(context).add(ExchangeEventSubmitTransaction(
+        state.user,
+        state.currenciesList,
+        state.chosenCurrency,
+        _fromAmountController.numberValue,
+        _toAmountController.numberValue,
+        state.isSell,
+      ));
+    } else {
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                title: Text('Error'),
+                content: Text('Please check the amount number'),
+              ));
+    }
   }
 }
