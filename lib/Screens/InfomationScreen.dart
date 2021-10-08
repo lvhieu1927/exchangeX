@@ -1,4 +1,6 @@
+import 'package:exchangex/Screens/LoginScreen.dart';
 import 'package:exchangex/blocs/InformationBloc.dart';
+import 'package:exchangex/blocs/LoginBloc.dart';
 import 'package:exchangex/blocs/events/InformationEvent.dart';
 import 'package:exchangex/blocs/states/InformationState.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +53,7 @@ class _InformationScreenState extends State<InformationScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment(0.8, 0.0),
                         // 10% of the width, so there are ten blinds.
-                        colors: <Color>[Color(0xff0B1A65), Color(0xffB0B1B6)],
+                        colors: <Color>[Color(0xff00092B), Color(0xff8C8D3A)],
                         // red to yellow
                         tileMode: TileMode
                             .repeated, // repeats the gradient over the canvas
@@ -91,7 +93,8 @@ class _InformationScreenState extends State<InformationScreen> {
                                       EdgeInsets.only(left: 20.w, top: 20.h),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       SvgPicture.asset(
                                         "assets/images/ic_exchangex.svg",
@@ -187,32 +190,81 @@ class _InformationScreenState extends State<InformationScreen> {
                               moneyTag(
                                   Colors.black87,
                                   state.user.balanceList[0].currency,
-                            NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(state
+                                  NumberFormat.currency(
+                                          locale: 'vi',
+                                          customPattern: '#,###.#',
+                                          decimalDigits: 2)
+                                      .format(state
                                           .user.balanceList[0].balanceValue)
                                       .toString()),
                               moneyTag(
                                   Colors.purpleAccent,
                                   state.user.balanceList[1].currency,
-                                  NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(state
+                                  NumberFormat.currency(
+                                          locale: 'vi',
+                                          customPattern: '#,###.#',
+                                          decimalDigits: 2)
+                                      .format(state
                                           .user.balanceList[1].balanceValue)
                                       .toString()),
                               moneyTag(
                                   Colors.pinkAccent,
                                   state.user.balanceList[2].currency,
-                                  NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(state
+                                  NumberFormat.currency(
+                                          locale: 'vi',
+                                          customPattern: '#,###.#',
+                                          decimalDigits: 2)
+                                      .format(state
                                           .user.balanceList[2].balanceValue)
                                       .toString()),
                               moneyTag(
                                   Colors.amberAccent,
                                   state.user.balanceList[3].currency,
-                                  NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(state
+                                  NumberFormat.currency(
+                                          locale: 'vi',
+                                          customPattern: '#,###.#',
+                                          decimalDigits: 2)
+                                      .format(state
                                           .user.balanceList[3].balanceValue)
                                       .toString()),
                             ],
                           ),
                         ),
                         SizedBox(
-                          height: 10.h,
+                          height: 15.h,
+                        ),
+                        Center(
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(mainColor),
+                                minimumSize: MaterialStateProperty.all<Size>(
+                                    Size(150.w, 50.h)),
+                                shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.h),
+                                ))),
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute<LoginScreen>(
+                                  builder: (_) => BlocProvider.value(
+                                    value: BlocProvider.of<LoginBloc>(context),
+                                    child: LoginScreen(),
+                                  ),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            child: Text(
+                              "Log out",
+                              style: TextStyle(
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -220,7 +272,42 @@ class _InformationScreenState extends State<InformationScreen> {
                 ],
               ),
             );
-          return Center(child: CircularProgressIndicator());
+          if (state is InformationStateError) {
+            return Container(
+              width: 360.w,
+              height: 640.h,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment(0.8, 0.0),
+                  // 10% of the width, so there are ten blinds.
+                  colors: <Color>[Color(0xff00092B), Color(0xff8C8D3A)],
+                  // red to yellow
+                  tileMode:
+                      TileMode.repeated, // repeats the gradient over the canvas
+                ),
+              ),
+              child: Center(child: Text("Something went Wrong . . . ")),
+            );
+          }
+          return Container(
+            width: 360.w,
+            height: 640.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment(0.8, 0.0),
+                // 10% of the width, so there are ten blinds.
+                colors: <Color>[Color(0xff00092B), Color(0xff8C8D3A)],
+                // red to yellow
+                tileMode:
+                    TileMode.repeated, // repeats the gradient over the canvas
+              ),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }),
       ),
     );

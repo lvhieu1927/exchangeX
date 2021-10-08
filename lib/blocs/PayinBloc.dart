@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:exchangex/blocs/events/PayinEvent.dart';
 import 'package:exchangex/blocs/states/PayinState.dart';
 import 'package:exchangex/repositories/balance_repository.dart';
+import 'package:exchangex/repositories/get_all_data.dart';
 import 'package:exchangex/repositories/history_repository.dart';
 import 'package:exchangex/repositories/submit_payin_transaction_repository.dart';
 import 'package:flutter/cupertino.dart';
@@ -40,13 +41,16 @@ class PayInBloc extends Bloc<PayInEvent, PayInState> {
           }
         }
         if (check){
-          String balanceList = await getBalanceUser(username);
-          debugPrint('exchangedebug: BalanceUser: ${balanceList}');
-          prefs.setString("balanceList", balanceList);
-
-          String payInHistoryList = await getPayInHistory(username);
-          debugPrint('exchangedebug: payInHistoryList: ${payInHistoryList}');
-          prefs.setString("payInHistoryList", payInHistoryList);
+          String allData = await getAllData(username);
+          debugPrint('exchangedebug: allData: ${allData}');
+          prefs.setString("allData", allData);
+          // String allData = await getAllData(username);
+          // debugPrint('exchangedebug: BalanceUser: ${balanceList}');
+          // prefs.setString("balanceList", balanceList);
+          //
+          // String payInHistoryList = await getPayInHistory(username);
+          // debugPrint('exchangedebug: payInHistoryList: ${payInHistoryList}');
+          // prefs.setString("payInHistoryList", payInHistoryList);
 
           yield PayInStateSuccessSubmit(message: message);
         }
@@ -57,6 +61,7 @@ class PayInBloc extends Bloc<PayInEvent, PayInState> {
     } catch (e) {
       debugPrint(
           'ExchangeXDebug: PayInBloc Printing out the error: ${e.toString()}');
+      yield PayInStateError(message: "Something went wrong, Pleasecheck your connection");
     }
   }
 }

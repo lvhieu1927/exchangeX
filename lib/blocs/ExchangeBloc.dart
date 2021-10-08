@@ -4,6 +4,7 @@ import 'package:exchangex/models/user_information_model.dart';
 import 'package:exchangex/models/user_model.dart';
 import 'package:exchangex/repositories/balance_repository.dart';
 import 'package:exchangex/repositories/currency_responsitory.dart';
+import 'package:exchangex/repositories/get_all_data.dart';
 import 'package:exchangex/repositories/history_repository.dart';
 import 'package:exchangex/repositories/submit_transaction_repository.dart';
 import 'package:exchangex/repositories/userinfomation_repository.dart';
@@ -19,42 +20,47 @@ class ExchangeBloc extends Bloc<ExchangeEvent, ExchangeState> {
 
   @override
   Stream<ExchangeState> mapEventToState(ExchangeEvent event) async* {
-      if (event is FetchExchangeEvent) {
-        SharedPreferences prefs = await _prefs;
+      try {
+        if (event is FetchExchangeEvent) {
+          SharedPreferences prefs = await _prefs;
 
-        final currencies = await getCurrencies();
+          final currencies = await getCurrencies();
 
-        String? userInfor = prefs.getString("userInformation");
-        UserInformation? userInformation = decodeUserInformation(userInfor);
-        List<Balance> balanceList = decodeBalanceUser(
-            prefs.getString("balanceList"));
+          String? allData = prefs.getString("allData");
 
-        User user = User.fromAPI(userInformation!, balanceList);
-        yield ExchangeStateSuccessFetched(user,"none",
-            currenciesList: currencies,
-            chosenCurrency: currencies[0],
-            fromAmount: 0,
-            toAmount: 0,
-            isSell: true);
-      }
-      if (event is ExchangeEventCurrencyChange) {
-        yield* _doChangeCurrencyFrom(event);
-      }
-      if (event is ExchangeEventSwapCurrency) {
-        yield* _doSwapCurrency(event);
-      }
-      if (event is ExchangeEventAmountChanged) {
-        yield* _doChangeAmount(event);
-      }
-      if (event is ExchangeEventSubmitTransaction) {
-        yield* _submitExchangeTransaction(event);
+          UserInformation? userInformation = decodeUserInformation(allData);
+          List<Balance> balanceList = decodeBalanceUser(allData);
+
+          User user = User.fromAPI(userInformation!, balanceList);
+          yield ExchangeStateSuccessFetched(user,"none",
+              currenciesList: currencies,
+              chosenCurrency: currencies[0],
+              fromAmount: 0,
+              toAmount: 0,
+              isSell: true);
+        }
+        if (event is ExchangeEventCurrencyChange) {
+          yield* _doChangeCurrencyFrom(event);
+        }
+        if (event is ExchangeEventSwapCurrency) {
+          yield* _doSwapCurrency(event);
+        }
+        if (event is ExchangeEventAmountChanged) {
+          yield* _doChangeAmount(event);
+        }
+        if (event is ExchangeEventSubmitTransaction) {
+          yield* _submitExchangeTransaction(event);
+        }
+      } on Exception catch (e) {
+        // TODO
+        debugPrint("exchangeDebug: exchangeBloc error: "+e.toString());
+        yield ExchangeStateFailedFetched();
       }
 
   }
 
   Stream<ExchangeState> _doChangeCurrencyFrom(
       ExchangeEventCurrencyChange event) async* {
-    yield ExchangeStateFetching();
     yield ExchangeStateSuccessFetched(event.user,"none",
         currenciesList: event.listCurrency,
         chosenCurrency: event.chosenCurrency,
@@ -65,7 +71,6 @@ class ExchangeBloc extends Bloc<ExchangeEvent, ExchangeState> {
 
   Stream<ExchangeState> _doSwapCurrency(
       ExchangeEventSwapCurrency event) async* {
-    yield ExchangeStateFetching();
     yield ExchangeStateSuccessFetched(event.user,"none",
         currenciesList: event.listCurrency,
         chosenCurrency: event.chosenCurrency,
@@ -127,25 +132,15 @@ class ExchangeBloc extends Bloc<ExchangeEvent, ExchangeState> {
 
     if (result == "success"){
 
-      String balanceList = await getBalanceUser(username);
-      debugPrint('exchangedebug: BalanceUser: ${balanceList}');
-      prefs.setString("balanceList", balanceList);
-
-      String exchangeHistoryList = await getHistoryExchange(username);
-      debugPrint('exchangedebug: exchangeHistory: ${exchangeHistoryList}');
-      prefs.setString("exchangeHistoryList", exchangeHistoryList);
-
-      String payInHistoryList = await getPayInHistory(username);
-      debugPrint('exchangedebug: payInHistoryList: ${payInHistoryList}');
-      prefs.setString("payInHistoryList", payInHistoryList);
+      String allData = await getAllData(username);
+      debugPrint('exchangedebug: allData: ${allData}');
+      prefs.setString("allData", allData);
 
       final currencies = await getCurrencies();
 
-      UserInformation? userInformation = decodeUserInformation(
-          prefs.getString("userInformation"));
+      UserInformation? userInformation = decodeUserInformation(allData);
 
-      List<Balance> userbalanceList = decodeBalanceUser(
-          prefs.getString("balanceList"));
+      List<Balance> userbalanceList = decodeBalanceUser(allData);
 
       User user = User.fromAPI(userInformation!, userbalanceList);
       yield ExchangeStateSuccessFetched(user,

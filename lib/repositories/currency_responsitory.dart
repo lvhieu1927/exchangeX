@@ -1,16 +1,21 @@
 import 'dart:convert';
 import 'package:exchangex/models/currency_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
-const String apiKey =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MzM4ODg0NzYsImlhdCI6MTYzMjU5MjQ3Niwic2NvcGUiOiJleGNoYW5nZV9yYXRlIiwicGVybWlzc2lvbiI6MH0.jfUa1mB3AWi7L1bALBCYXc-lB_09v-n4tTMn0lhmJks";
+const String linkAPIKey =
+    "https://vapi.vnappmob.com/api/request_api_key?scope=exchange_rate";
 const apiExchangeRate = "/api/v2/exchange_rate/vcb";
 
-final Uri currencyURL = Uri.https(
-    'vapi.vnappmob.com', '${apiExchangeRate}', {"api_key": "${apiKey}"});
-
 Future<List<Currency>> getCurrencies() async {
+  http.Response getApiKey = await http.get(Uri.parse(linkAPIKey));
+  dynamic jsonApiKey = json.decode(getApiKey.body);
+  debugPrint("this is currency API key: "+jsonApiKey.toString());
+
+  Uri currencyURL = Uri.https(
+      'vapi.vnappmob.com', '${apiExchangeRate}', {"api_key": "${jsonApiKey["results"]}"});
+
   http.Response response = await http.get(currencyURL);
   List<Currency> currencies = <Currency>[];
   if (response.statusCode == 200) {

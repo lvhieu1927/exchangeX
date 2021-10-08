@@ -17,19 +17,22 @@ class HistoryBloc extends Bloc<HistoryEvent,HistoryState>{
   Stream<HistoryState> mapEventToState(HistoryEvent event) async* {
     try{
       if (event is HistoryEventFetching){
+        yield HistoryStateFetching();
+
         SharedPreferences prefs = await _prefs;
+        String? allData = prefs.getString("allData");
+        List<ExchangeHistory> exchangeHistoryList = decodeHistoryExchange(allData);
 
-        List<ExchangeHistory> exchangeHistoryList = decodeHistoryExchange(prefs.getString("exchangeHistoryList"));
+        List<PayInHistory> payInHistoryList = decodePayInHistory(allData);
 
-        List<PayInHistory> payInHistoryList = decodePayInHistory(prefs.getString("payInHistoryList"));
-
-        List<Balance> balanceList = decodeBalanceUser(prefs.getString("balanceList"));
+        List<Balance> balanceList = decodeBalanceUser(allData);
 
         yield HistoryStateSuccessFetched(exchangeHistoryList: exchangeHistoryList, payInHistoryList: payInHistoryList, balanceList: balanceList);
       }
     }catch(e)
     {
       debugPrint('exchangedebug: HistoryBloc Printing out the error: ${e.toString()}');
+      yield HistoryStateError();
     }
   }
 }

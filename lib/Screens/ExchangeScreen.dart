@@ -16,6 +16,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:intl/intl.dart';
 
+import 'Widgets/CanvasDraw.dart';
+
 class ExchangeScreen extends StatefulWidget {
   const ExchangeScreen({Key? key}) : super(key: key);
 
@@ -65,85 +67,223 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: SafeArea(child:
-          BlocBuilder<ExchangeBloc, ExchangeState>(builder: (context, state) {
-        if (state is ExchangeStateSubmittingTransaction ||
-            state is ExchangeStateFetching ||
-            state is ExchangeStateInitial) {
-          return Container(
-              height: 640.h,
+      body: SafeArea(
+          child: BlocListener<ExchangeBloc, ExchangeState>(
+        bloc: _exchangeBloc,
+        listener: (context, state) {
+          if (state is ExchangeStateSuccessFetched){
+            if (state.message != "none")
+              {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context){
+                    return AlertDialog(
+                      title: Text(state.message == "fail" ? "Error!" : "Successfully!"),
+                      content: new Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          state.message == "fail"
+                              ?Text('Something went wrong, please check your connection', style: TextStyle(color: Colors.red, fontSize: 18.sp),)
+                              :Text('Transaction successfully!!'),
+                        ],
+                      ),
+                      actions: <Widget>[
+                        new FlatButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          textColor: Theme.of(context).primaryColor,
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+          }
+        },
+        child:
+            BlocBuilder<ExchangeBloc, ExchangeState>(builder: (context, state) {
+          if (state is ExchangeStateSubmittingTransaction ||
+              state is ExchangeStateFetching ||
+              state is ExchangeStateInitial) {
+            return Container(
               width: 360.w,
-              child: Center(child: CircularProgressIndicator()));
-        }
-        if (state is ExchangeStateFailedFetched) {
-          return Center(
-            child: Text("Failed to load Currencies"),
-          );
-        }
-        if (state is ExchangeStateSuccessFetched) {
-          final currentState = state as ExchangeStateSuccessFetched;
-          return SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Padding(
-              padding: const EdgeInsets.all(0.0),
+              height: 640.h,
+              padding: EdgeInsets.only(bottom: 50),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment(0.9, 0.4),
+                  // 10% of the width, so there are ten blinds.
+                  colors: <Color>[Color(0xff030357), Color(0xffE3E3E5)],
+                  // red to yellow
+                ),
+              ),
               child: Stack(
                 children: [
                   Container(
-                    width: 360.w,
-                    height: 640.h,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment(0.8, 0.0),
-                        // 10% of the width, so there are ten blinds.
-                        colors: <Color>[Color(0xff0B1A65), Color(0xffB0B1B6)],
-                        // red to yellow
-                        tileMode: TileMode
-                            .repeated, // repeats the gradient over the canvas
-                      ),
+                    child: CustomPaint(
+                      painter: OpenPainter33(),
                     ),
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      headOfScreen(currentState),
-                      bottomOfScreen(currentState, context),
-                      Padding(
-                        padding:
-                            EdgeInsets.only(top: 12.h, left: 12.w, right: 12.w),
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                              minimumSize: MaterialStateProperty.all<Size>(
-                                  Size(double.infinity, 45.h)),
-                              shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18.0),
-                              ))),
-                          onPressed: () {
-                            _pressSubmitButton(state);
-                          },
-                          child: Text(
-                            currentState.isSell
-                                ? 'Sell ${currentState.chosenCurrency.currency}'
-                                : 'Buy ${currentState.chosenCurrency.currency}',
-                            style: TextStyle(
-                                fontSize: 16.sp, fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                      ),
-                    ],
+                  Container(
+                    width: 360.w,
+                    height: 640.h,
+                    child: CustomPaint(
+                      painter: OpenPainter11(),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(bottom: 50),
+                    width: 360.w,
+                    height: 640.h,
+                    child: CustomPaint(
+                      painter: OpenPainter22(),
+                    ),
+                  ),
+                  Center(
+                    child: CircularProgressIndicator(),
+                  )
+                ],
+              ),
+            );
+          }
+          if (state is ExchangeStateFailedFetched) {
+            return Container(
+              width: 360.w,
+              height: 640.h,
+              padding: EdgeInsets.only(bottom: 50),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment(0.9, 0.4),
+                  // 10% of the width, so there are ten blinds.
+                  colors: <Color>[Color(0xff030357), Color(0xffE3E3E5)],
+                  // red to yellow
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Container(
+                    child: CustomPaint(
+                      painter: OpenPainter33(),
+                    ),
+                  ),
+                  Container(
+                    width: 360.w,
+                    height: 640.h,
+                    child: CustomPaint(
+                      painter: OpenPainter11(),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(bottom: 50),
+                    width: 360.w,
+                    height: 640.h,
+                    child: CustomPaint(
+                      painter: OpenPainter22(),
+                    ),
+                  ),
+                  Center(
+                    child: Text(
+                      "Something Went wrong, Please check your connection and restart the app",
+                      style: TextStyle(fontSize: 18.sp, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
-            ),
+            );
+          }
+          if (state is ExchangeStateSuccessFetched) {
+            final currentState = state as ExchangeStateSuccessFetched;
+            return SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 360.w,
+                      height: 640.h,
+                      padding: EdgeInsets.only(bottom: 50),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment(0.9, 0.4),
+                          // 10% of the width, so there are ten blinds.
+                          colors: <Color>[Color(0xff030357), Color(0xffE3E3E5)],
+                          // red to yellow
+                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Container(
+                            child: CustomPaint(
+                              painter: OpenPainter33(),
+                            ),
+                          ),
+                          Container(
+                            width: 360.w,
+                            height: 640.h,
+                            child: CustomPaint(
+                              painter: OpenPainter11(),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.only(bottom: 50),
+                            width: 360.w,
+                            height: 640.h,
+                            child: CustomPaint(
+                              painter: OpenPainter22(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        headOfScreen(currentState),
+                        bottomOfScreen(currentState, context),
+                        Padding(
+                          padding: EdgeInsets.only(
+                              top: 8.h, left: 10.w, right: 10.w),
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all<Size>(
+                                    Size(double.infinity, 50.h)),
+                                shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18.0),
+                                ))),
+                            onPressed: () {
+                              _pressSubmitButton(state);
+                            },
+                            child: Text(
+                              currentState.isSell
+                                  ? 'Sell ${currentState.chosenCurrency.currency}'
+                                  : 'Buy ${currentState.chosenCurrency.currency}',
+                              style: TextStyle(
+                                  fontSize: 16.sp, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          return Center(
+            child: Text("Other State"),
           );
-        }
-        return Center(
-          child: Text("Other State"),
-        );
-      })),
+        }),
+      )),
     );
   }
 
@@ -155,7 +295,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
     String formattedDate = formatter.format(now);
 
     return Padding(
-      padding: EdgeInsets.only(top: 20.h, left: 12.w, right: 12.w),
+      padding: EdgeInsets.only(top: 20.h, left: 10.w, right: 10.w),
       child: Container(
           padding: EdgeInsets.only(bottom: 14.0.h),
           decoration: BoxDecoration(
@@ -228,9 +368,9 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
     _toAmountController.updateValue(currentState.toAmount);
 
     _fromAmountController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _fromAmountController.text.length-2));
+        TextPosition(offset: _fromAmountController.text.length - 2));
     _toAmountController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _toAmountController.text.length-2));
+        TextPosition(offset: _toAmountController.text.length - 2));
 
     num balanceChosenCurrency = 0;
     for (int i = 0; i < currentState.user.balanceList.length; i++) {
@@ -240,7 +380,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
     }
 
     return Container(
-      margin: EdgeInsets.only(top: 14.h, left: 12.w, right: 12.w),
+      margin: EdgeInsets.only(top: 12.h, left: 10.w, right: 10.w),
       padding:
           EdgeInsets.only(left: 35.w, right: 35.w, top: 30.w, bottom: 30.w),
       decoration: BoxDecoration(
@@ -276,9 +416,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                   "Max: ${currentState.isSell ? currentState.chosenCurrency.currency : "VND"} "
-                  "${currentState.isSell
-                      ? NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(balanceChosenCurrency)
-                      : NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(currentState.user.balanceList[0].balanceValue)}",
+                  "${currentState.isSell ? NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(balanceChosenCurrency) : NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format(currentState.user.balanceList[0].balanceValue)}",
                   style: TextStyle(color: wordGreyColor)),
             )
           ]),
@@ -330,9 +468,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 "Max: ${!currentState.isSell ? currentState.chosenCurrency.currency : "VND"} "
-                "${currentState.isSell
-                    ? NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format((balanceChosenCurrency * currentState.chosenCurrency.sell))
-                    : NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format((currentState.user.balanceList[0].balanceValue / currentState.chosenCurrency.buy_cash))}",
+                "${currentState.isSell ? NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format((balanceChosenCurrency * currentState.chosenCurrency.sell)) : NumberFormat.currency(locale: 'vi', customPattern: '#,###.#', decimalDigits: 2).format((currentState.user.balanceList[0].balanceValue / currentState.chosenCurrency.buy_cash))}",
                 style: TextStyle(color: wordGreyColor),
               ),
             )
@@ -375,7 +511,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.only(top: 10.w),
+                  padding: EdgeInsets.only(top: 10.w, bottom: 5.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [

@@ -1,6 +1,8 @@
 import 'package:exchangex/Screens/ExchangeScreen.dart';
+import 'package:exchangex/Screens/SignUpScreen.dart';
 import 'package:exchangex/blocs/ExchangeBloc.dart';
 import 'package:exchangex/blocs/LoginBloc.dart';
+import 'package:exchangex/blocs/SignUpBloc.dart';
 import 'package:exchangex/blocs/events/LoginEvent.dart';
 import 'package:exchangex/blocs/states/LoginState.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +13,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:local_auth/local_auth.dart';
 import 'MyTabControl.dart';
+import 'Widgets/CanvasDraw.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen() : super();
@@ -25,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
   late LoginBloc _loginBloc;
   final LocalAuthentication _localAuthentication = LocalAuthentication();
 
-
   @override
   void initState() {
     checkingForBioMetrics();
@@ -34,8 +36,12 @@ class _LoginScreenState extends State<LoginScreen> {
     _userController = TextEditingController();
     _passwordController = TextEditingController();
     _loginBloc.add(CheckUserEvent());
+    precachePicture(
+      ExactAssetPicture(
+          SvgPicture.svgStringDecoder, "assets/images/ic_exchangex.svg"),
+      null,
+    );
   }
-
 
   @override
   void dispose() {
@@ -47,214 +53,260 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xff061033),
       resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Stack(
-            children: [
-              Image.asset(
-                "assets/images/img_login.jpg",
-                height: 640.h,
-                width: 360.w,
-                fit: BoxFit.fill,
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    vertical: 16.h, horizontal: 16.w),
-                child: BlocListener<LoginBloc, LoginState>(
-                  bloc: _loginBloc,
-                  listener: (context, state) {
-                    if (state is ErrorState) {
-                      WidgetsBinding.instance!.addPostFrameCallback((_) {
-                        _showError(context, state.message);
-                      });
-                    }
-                    if (state is LoggedInState) {
-                      print('dang nhap thanh cong');
-                      SchedulerBinding.instance!.addPostFrameCallback((_) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<ExchangeScreen>(
-                            builder: (_) =>
-                                BlocProvider.value(
-                                  value: BlocProvider.of<ExchangeBloc>(context),
-                                  child: MyTabControl(),
-                                ),
-                          ),
-                        );
-                      });
-                    }
-                  },
-                  child: BlocBuilder<LoginBloc, LoginState>(
-                    builder: (context, state) {
-                      print("loginscreen :"+state.toString());
-                      if (state is LoggingInState) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      else
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              SizedBox(height: 24.h),
-                              SvgPicture.asset(
-                                "assets/images/ic_exchangex.svg",
-                                height: 86.h,
-                                width: 86.w,
-                                fit: BoxFit.fill,
-                              ),
-                              SizedBox(height: 24.h),
-                              Text(
-                                'ExchangeX',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20.sp),
-                              ),
-                              (state is InitialHasUserLoginState) ? hasUserLogin(
-                                  state) :
-                              Column(
-                                children: [
-                                  SizedBox(height: 65.h),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.w),
-                                    alignment: Alignment.topLeft,
-                                    child: Text("Tài khoản",
-                                        style: TextStyle(
-                                            fontSize: 14.sp, color: Colors.grey)),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.w),
-                                    child: TextFormField(
-                                      decoration: InputDecoration(
-                                          hintText: "Tên Đăng nhập...",
-                                          hintStyle:
-                                          TextStyle(fontSize: 14.sp,
-                                              color: Colors.grey),
-                                          icon: new Icon(
-                                            Icons.account_circle_outlined,
-                                            color: Colors.grey,
-                                            size: 24.h,
-                                          ),
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Colors.white),
-                                          ),
-                                          labelStyle: TextStyle(
-                                              color: Colors.white)),
-                                      style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white),
-                                      controller: _userController,
-                                    ),
-                                  ),
-                                  SizedBox(height: 28.h),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.w),
-                                    alignment: Alignment.topLeft,
-                                    child: Text("Mật khẩu",
-                                        style: TextStyle(
-                                            fontSize: 14.sp, color: Colors.grey)),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.w),
-                                    child: TextFormField(
-                                      decoration: InputDecoration(
-                                          hintText: "Nhập mật khẩu...",
-                                          hintStyle:
-                                          TextStyle(fontSize: 14.sp,
-                                              color: Colors.grey),
-                                          icon: new Icon(
-                                            Icons.lock_outline,
-                                            color: Colors.grey,
-                                            size: 24.h,
-                                          ),
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Colors.white),
-                                          ),
-                                          labelStyle: TextStyle(
-                                              color: Colors.white)),
-                                      obscureText: true,
-                                      style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white),
-                                      controller: _passwordController,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              SizedBox(height: 47.h),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    left: 64.w,
-                                    right: 64.w),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 50.h,
-                                  decoration: BoxDecoration(
-                                      gradient:
-                                      RadialGradient(radius: 1.8, colors: [
-                                        Color(0xFF878585),
-                                        Color(0xFF00092B),
-                                      ]),
-                                      borderRadius:
-                                      new BorderRadius.all(Radius.circular(15)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          offset: Offset(0.0, 1.0),
-                                          blurRadius: 0.8,
-                                        ),
-                                      ]),
-                                  child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: (){_doLogin(state);},
-                                        child: Center(
-                                            child: Center(
-                                              child: Text(
-                                                'Đăng nhập',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 16.sp,
-                                                    fontWeight: FontWeight.w500),
+        child: BlocListener<LoginBloc, LoginState>(
+          bloc: _loginBloc,
+          listener: (context, state) {
+            if (state is ErrorState) {
+              WidgetsBinding.instance!.addPostFrameCallback((_) {
+                _showError(context, state.message);
+              });
+            }
+            if (state is LoggedInState) {
+              Navigator.of(context).push(
+                MaterialPageRoute<ExchangeScreen>(
+                  builder: (_) => BlocProvider.value(
+                    value: BlocProvider.of<ExchangeBloc>(context),
+                    child: MyTabControl(),
+                  ),
+                ),
+              );
+            }
+          },
+          child: BlocBuilder<LoginBloc, LoginState>(
+            builder: (context, state) {
+              print("loginscreen :" + state.toString());
+              return SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(top: 30, left: 10),
+                      width: 360.w,
+                      height: 640.h,
+                      child: CustomPaint(
+                        painter: OpenPainter3(),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(top: 30, left: 10),
+                      width: 360.w,
+                      height: 640.h,
+                      child: CustomPaint(
+                        painter: OpenPainter(),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(top: 30, left: 10),
+                      width: 360.w,
+                      height: 640.h,
+                      child: CustomPaint(
+                        painter: OpenPainter2(),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 16.h, horizontal: 16.w),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 24.h),
+                            SvgPicture.asset(
+                              "assets/images/ic_exchangex.svg",
+                              height: 80.h,
+                              width: 80.w,
+                              fit: BoxFit.fill,
+                            ),
+                            SizedBox(height: 24.h),
+                            Text(
+                              'ExchangeX',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20.sp),
+                            ),
+                            (state is InitialHasUserLoginState)
+                                ? hasUserLogin(state)
+                                : Column(
+                                    children: [
+                                      SizedBox(height: 65.h),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w),
+                                        alignment: Alignment.topLeft,
+                                        child: Text("Tài khoản",
+                                            style: TextStyle(
+                                                fontSize: 14.sp,
+                                                color: Colors.grey)),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w),
+                                        child: TextFormField(
+                                          decoration: InputDecoration(
+                                              hintText: "Tên Đăng nhập...",
+                                              hintStyle: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  color: Colors.grey),
+                                              icon: new Icon(
+                                                Icons.account_circle_outlined,
+                                                color: Colors.grey,
+                                                size: 24.h,
                                               ),
-                                            )),
+                                              enabledBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
+                                              ),
+                                              labelStyle: TextStyle(
+                                                  color: Colors.white)),
+                                          style: TextStyle(
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white),
+                                          controller: _userController,
+                                        ),
+                                      ),
+                                      SizedBox(height: 28.h),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w),
+                                        alignment: Alignment.topLeft,
+                                        child: Text("Mật khẩu",
+                                            style: TextStyle(
+                                                fontSize: 14.sp,
+                                                color: Colors.grey)),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w),
+                                        child: TextFormField(
+                                          decoration: InputDecoration(
+                                              hintText: "Nhập mật khẩu...",
+                                              hintStyle: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  color: Colors.grey),
+                                              icon: new Icon(
+                                                Icons.lock_outline,
+                                                color: Colors.grey,
+                                                size: 24.h,
+                                              ),
+                                              enabledBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
+                                              ),
+                                              labelStyle: TextStyle(
+                                                  color: Colors.white)),
+                                          obscureText: true,
+                                          style: TextStyle(
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white),
+                                          controller: _passwordController,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                            SizedBox(height: 47.h),
+                            Padding(
+                              padding: EdgeInsets.only(left: 64.w, right: 64.w),
+                              child: Container(
+                                width: double.infinity,
+                                height: 50.h,
+                                decoration: BoxDecoration(
+                                    gradient:
+                                        RadialGradient(radius: 1.8, colors: [
+                                      Color(0xFF878585),
+                                      Color(0xFF00092B),
+                                    ]),
+                                    borderRadius: new BorderRadius.all(
+                                        Radius.circular(15)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        offset: Offset(0.0, 1.0),
+                                        blurRadius: 0.8,
+                                      ),
+                                    ]),
+                                child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () {
+                                        _doLogin(state);
+                                      },
+                                      child: Center(
+                                          child: Center(
+                                        child: Text(
+                                          'Đăng nhập',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w500),
+                                        ),
                                       )),
-                                ),
+                                    )),
                               ),
-                              SizedBox(height: 42.h),
-                              Text(
+                            ),
+                            SizedBox(height: 42.h),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute<SignUpScreen>(
+                                    builder: (_) => BlocProvider.value(
+                                      value:
+                                          BlocProvider.of<SignUpBloc>(context),
+                                      child: SignUpScreen(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
                                 "Đăng ký tài khoản",
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 12.sp),
                               ),
-                              SizedBox(height: 7.h),
-                              Divider(
-                                indent: 100,
-                                endIndent: 100,
-                                color: Colors.white,
-                              ),
-                              Padding(
-                                  padding: EdgeInsets.only(top: 7.h),
-                                  child: Text("Quên mật khẩu",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 12.sp))),
-                            ],
-                          ),
-                        );
-                    },
-                  ),
+                            ),
+                            SizedBox(height: 7.h),
+                            Divider(
+                              indent: 100,
+                              endIndent: 100,
+                              color: Colors.white,
+                            ),
+                            (state is InitialHasUserLoginState)
+                                ? Padding(
+                                    padding: EdgeInsets.only(top: 7.h),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _loginBloc
+                                            .add(LoginEventWithOtherAcount());
+                                      },
+                                      child: Text("Đăng nhập tài khoản khác",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp)),
+                                    ))
+                                : SizedBox(
+                                    height: 0,
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    (state is LoggingInState || state is LoggedInState || state is InitialLoginState)
+                        ? Container(
+                            height: 640.h,
+                            width: 360.w,
+                            child: Center(child: CircularProgressIndicator()))
+                        : SizedBox(
+                            height: 0,
+                          )
+                  ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -266,27 +318,33 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           SizedBox(height: 40.h),
-          Text("Xin chào", style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w400)),
-          SizedBox(height: 10.h,),
-          Text("${state.userHasLogin.fullName}", style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w400)),
-          SizedBox(height: 10.h,),
-          Text("${state.userHasLogin.identifyCard}", style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w400)),
+          Text("Xin chào",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400)),
+          SizedBox(
+            height: 10.h,
+          ),
+          Text("${state.userHasLogin.fullName}",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400)),
+          SizedBox(
+            height: 10.h,
+          ),
+          Text("${state.userHasLogin.identifyCard}",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400)),
           SizedBox(height: 28.h),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w),
             alignment: Alignment.topLeft,
             child: Text("Mật khẩu",
-                style: TextStyle(
-                    fontSize: 14.sp, color: Colors.grey)),
+                style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -298,7 +356,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                         hintText: "Nhập mật khẩu...",
                         hintStyle:
-                        TextStyle(fontSize: 14.sp, color: Colors.grey),
+                            TextStyle(fontSize: 14.sp, color: Colors.grey),
                         icon: new Icon(
                           Icons.lock_outline,
                           color: Colors.grey,
@@ -328,7 +386,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ],
-
             ),
           ),
         ],
@@ -336,13 +393,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
   void _doLogin(LoginState state) {
-    if (state is InitialHasUserLoginState)
-    {
-      _loginBloc.add(DoLoginWhenHasUsernameEvent(_passwordController.text,false));
-    }
-    else
+    if (state is InitialHasUserLoginState) {
+      _loginBloc
+          .add(DoLoginWhenHasUsernameEvent(_passwordController.text, false));
+    } else
       _loginBloc.add(
         DoLoginEvent(_userController.text, _passwordController.text),
       );
@@ -354,10 +409,9 @@ class _LoginScreenState extends State<LoginScreen> {
     ));
   }
 
-
   Future<bool> checkingForBioMetrics() async {
     bool canCheckBiometrics = await _localAuthentication.canCheckBiometrics;
-    print("cancheck biomectionc: "+canCheckBiometrics.toString());
+    print("cancheck biomectionc: " + canCheckBiometrics.toString());
     return canCheckBiometrics;
   }
 
@@ -380,9 +434,10 @@ class _LoginScreenState extends State<LoginScreen> {
       //         ),
       //   ),
       // );
-      _loginBloc.add(DoLoginWhenHasUsernameEvent(_passwordController.text,true));
+      _loginBloc
+          .add(DoLoginWhenHasUsernameEvent(_passwordController.text, true));
     } catch (e) {
-      print("this is error login: "+e.toString());
+      print("this is error login: " + e.toString());
     }
     if (!mounted) return;
   }

@@ -3,6 +3,7 @@ import 'package:exchangex/Screens/HistoryScreen.dart';
 import 'package:exchangex/Screens/InfomationScreen.dart';
 import 'package:exchangex/blocs/HistoryBloc.dart';
 import 'package:exchangex/blocs/InformationBloc.dart';
+import 'package:exchangex/blocs/LoginBloc.dart';
 import 'package:exchangex/blocs/PayinBloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ class MyTabControl extends StatelessWidget {
                 create: (BuildContext context) => InformationBloc()),
             BlocProvider<PayInBloc>(
                 create: (BuildContext context) => PayInBloc()),
+            BlocProvider<LoginBloc>(
+                create: (BuildContext context) => LoginBloc()),
           ],
           child: TabBarView(
             children: [
@@ -53,7 +56,7 @@ class MyTabControl extends StatelessWidget {
             icon: Icon(Icons.account_balance_wallet),
           ),
           Tab(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.account_circle),
           ),
         ],
       ),

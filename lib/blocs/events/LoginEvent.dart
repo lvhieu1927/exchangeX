@@ -14,6 +14,8 @@ class DoLoginEvent extends LoginEvent {
   List<Object> get props => [];
 }
 
+
+
 class DoLoginWhenHasUsernameEvent extends LoginEvent {
 
   final String password;
@@ -26,6 +28,12 @@ class DoLoginWhenHasUsernameEvent extends LoginEvent {
 }
 
 class CheckUserEvent extends LoginEvent {
+
+  @override
+  List<Object> get props => [];
+}
+
+class LoginEventWithOtherAcount extends LoginEvent {
 
   @override
   List<Object> get props => [];

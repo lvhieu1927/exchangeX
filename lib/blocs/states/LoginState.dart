@@ -13,6 +13,11 @@ class InitialLoginState extends LoginState {
   List<Object> get props => [];
 }
 
+class InitialLoginStateNewUser extends LoginState {
+  @override
+  List<Object> get props => [];
+}
+
 class InitialHasUserLoginState extends LoginState {
   final UserInformation userHasLogin;
 

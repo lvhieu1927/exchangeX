@@ -18,7 +18,7 @@ class _PayInScreenState extends State<PayInScreen> {
   late MoneyMaskedTextController _amountController;
   late TextEditingController _passwordController;
   late TextEditingController _descriptionController;
-  Color mainColor = Color(0xff8A85AA);
+  Color mainColor = Color(0xff031244);
   late PayInBloc _payInBloc;
 
   @override
@@ -107,8 +107,10 @@ class _PayInScreenState extends State<PayInScreen> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+
                               SizedBox(
                                 height: 50.h,
+                                child: Text("${_checkError(state)}"),
                               ),
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -125,6 +127,13 @@ class _PayInScreenState extends State<PayInScreen> {
                                   width: double.infinity,
                                   child: TextField(
                                     keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide:
+                                          BorderSide(color: Colors.white),
+                                        ),
+                                        labelStyle:
+                                        TextStyle(color: Colors.white)),
                                     controller: _amountController,
                                     cursorColor: Colors.white,
                                     onSubmitted: (String val) {},
@@ -154,6 +163,13 @@ class _PayInScreenState extends State<PayInScreen> {
                                     keyboardType: TextInputType.text,
                                     controller: _descriptionController,
                                     cursorColor: Colors.white,
+                                    decoration: InputDecoration(
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide:
+                                          BorderSide(color: Colors.white),
+                                        ),
+                                        labelStyle:
+                                        TextStyle(color: Colors.white)),
                                     onSubmitted: (String val) {},
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
@@ -272,6 +288,13 @@ class _PayInScreenState extends State<PayInScreen> {
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text(message),
     ));
+  }
+
+  String _checkError(PayInState state)
+  {
+    if (state is PayInStateError)
+      return state.message;
+    return "";
   }
 
   Widget _buildPopupDialog(BuildContext context, String message) {

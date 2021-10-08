@@ -12,6 +12,7 @@ abstract class HistoryState extends Equatable{
 
 class HistoryStateInitial extends HistoryState{}
 class HistoryStateFetching extends HistoryState{}
+class HistoryStateError extends HistoryState{}
 class HistoryStateSuccessFetched extends HistoryState{
 
   List<ExchangeHistory> exchangeHistoryList;

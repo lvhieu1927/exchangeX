@@ -9,6 +9,12 @@ abstract class PayInState extends Equatable{
 
 class PayInStateInitial extends PayInState{}
 
+class PayInStateError extends PayInState{
+  final String message;
+
+  PayInStateError({required this.message});
+}
+
 class PayInStateSubmitting extends PayInState{}
 
 class PayInStateFailedSubmit extends PayInState{

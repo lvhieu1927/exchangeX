@@ -11,29 +11,34 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class InformationBloc extends Bloc<InformationEvent,InformationState>{
+class InformationBloc extends Bloc<InformationEvent,InformationState> {
   InformationBloc() : super(InformationStateInitial());
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   @override
   Stream<InformationState> mapEventToState(InformationEvent event) async* {
-    try{
-      if (event is InformationEventFetching){
-        SharedPreferences prefs = await _prefs;
-        List<Balance> balanceList = decodeBalanceUser(prefs.getString("balanceList"));
-        UserInformation? userInformation = decodeUserInformation(prefs.getString("userInformation"));
-        User user = User.fromAPI(userInformation!, balanceList);
-        List<Currency> currencies = <Currency>[];
-        currencies = await getCurrencies();
-        double totalBalance = balanceList[0].balanceValue;
-        totalBalance = totalBalance + currencies[2].sell * balanceList[1].balanceValue;
-        totalBalance = totalBalance + currencies[1].sell * balanceList[3].balanceValue;
-        totalBalance = totalBalance + currencies[0].sell * balanceList[2].balanceValue;
-        yield InformationStateSuccessFetched(user: user,totalBalance: totalBalance);
+    if (event is InformationEventFetching) {
+      SharedPreferences prefs = await _prefs;
+      String? allData = prefs.getString("allData");
+
+      List<Balance> balanceList = decodeBalanceUser(allData);
+      UserInformation? userInformation = decodeUserInformation(allData);
+
+      User user = User.fromAPI(userInformation!, balanceList);
+      List<Currency> currencies = <Currency>[];
+      currencies = await getCurrencies();
+      double totalBalance = 0;
+      if (balanceList != null) {
+        totalBalance = balanceList[0].balanceValue;
+        totalBalance =
+            totalBalance + currencies[2].sell * balanceList[1].balanceValue;
+        totalBalance =
+            totalBalance + currencies[1].sell * balanceList[3].balanceValue;
+        totalBalance =
+            totalBalance + currencies[0].sell * balanceList[2].balanceValue;
       }
-    }catch(e)
-    {
-      debugPrint('exchangedebug: InformationBloc Printing out the error: ${e.toString()}');
+      yield InformationStateSuccessFetched(
+          user: user, totalBalance: totalBalance);
     }
   }
 }

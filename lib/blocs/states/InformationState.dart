@@ -10,6 +10,10 @@ abstract class InformationState extends Equatable{
 
 class InformationStateInitial extends InformationState{}
 
+class InformationStateError extends InformationState{}
+
+
+
 class InformationStateSuccessFetched extends InformationState{
   double totalBalance;
   User user;
